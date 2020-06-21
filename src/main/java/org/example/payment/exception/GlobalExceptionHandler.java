@@ -1,40 +1,62 @@
 package org.example.payment.exception;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.payment.constant.ErrorCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
 
+import javax.validation.ConstraintViolationException;
+
+import static org.example.payment.constant.ErrorCode.ILLEGAL_ARGUMENT;
+import static org.example.payment.constant.ErrorCode.UNKNOWN_ERROR;
+
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+  @ExceptionHandler(Exception.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  public ErrorResponse handleException(Exception ex) {
+    log.error(ex.getMessage(), ex);
+    return new ErrorResponse(UNKNOWN_ERROR);
+  }
   @ExceptionHandler(value = {
       WebExchangeBindException.class,
-      MethodArgumentNotValidException.class
+      MethodArgumentNotValidException.class,
+      MissingServletRequestParameterException.class,
+      ConstraintViolationException.class
   })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ErrorMsg handleBindException(Exception ex) {
+  public ErrorResponse handleBindException(Exception ex) {
     log.error(ex.getMessage(), ex);
-    return new ErrorMsg("Invalid parameter");
+    return new ErrorResponse(ILLEGAL_ARGUMENT);
   }
 
   @ExceptionHandler(IllegalArgumentException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ErrorMsg handleIllegalArgumentException(IllegalArgumentException ex) {
+  public ErrorResponse handleIllegalArgumentException(IllegalArgumentException ex) {
     log.error(ex.getMessage(), ex);
-    return new ErrorMsg(ex.getMessage());
+    return new ErrorResponse(ILLEGAL_ARGUMENT, ex.getMessage());
   }
 
   @Data
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class ErrorMsg {
-    private String message;
+  public static class ErrorResponse {
+    private int errorCode;
+    private String errorMessage;
+
+    public ErrorResponse(ErrorCode errorCode) {
+      this.errorCode = errorCode.getCode();
+      this.errorMessage = errorCode.name();
+    }
+
+    public ErrorResponse(ErrorCode errorCode, String errorMessage) {
+      this.errorCode = errorCode.getCode();
+      this.errorMessage = errorMessage;
+    }
   }
 }
