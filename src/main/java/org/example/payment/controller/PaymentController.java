@@ -6,6 +6,7 @@ import org.example.payment.model.PayTransaction;
 import org.example.payment.model.request.CancelRequest;
 import org.example.payment.model.request.PayRequest;
 import org.example.payment.service.PaymentService;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 @RestController
+@Validated
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/v1/payment")
@@ -33,7 +36,7 @@ public class PaymentController {
   }
 
   @GetMapping("/transaction")
-  public PayTransaction findTransaction(@RequestParam String transactionId) {
+  public PayTransaction findTransaction(@RequestParam @NotEmpty String transactionId) {
     return paymentService.findTransaction(transactionId);
   }
 }
