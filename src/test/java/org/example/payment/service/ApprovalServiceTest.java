@@ -3,7 +3,7 @@ package org.example.payment.service;
 import org.apache.commons.lang3.StringUtils;
 import org.example.payment.constant.TransactionType;
 import org.example.payment.entity.CreditCardEntity;
-import org.example.payment.entity.PaymentEntity;
+import org.example.payment.entity.PayTransactionEntity;
 import org.example.payment.entity.SampleEntityGenerator;
 import org.example.payment.repository.PayApprovalRepository;
 import org.junit.jupiter.api.Test;
@@ -13,11 +13,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class ApprovalServiceTest {
@@ -40,14 +38,16 @@ class ApprovalServiceTest {
    */
 
   @Test
-  void successRequestPay() {
+  void successRequestApproval() {
     CreditCardEntity creditCardEntity = SampleEntityGenerator.genCreditCardEntity();
     creditCardEntity.encrypt();
-    PaymentEntity paymentEntity = SampleEntityGenerator.genPaymentEntity();
+    PayTransactionEntity payTransactionEntity = SampleEntityGenerator.genPayTransactionEntity(TransactionType.PAYMENT);
+    approvalService.requestApproval(creditCardEntity, payTransactionEntity);
 
-    approvalService.requestPay(creditCardEntity, paymentEntity);
+    payTransactionEntity = SampleEntityGenerator.genPayTransactionEntity(TransactionType.CANCEL);
+    approvalService.requestApproval(creditCardEntity, payTransactionEntity);
 
-    verify(payApprovalRepository, times(1)).save(argThat(argument -> verifyApprovalInfo(argument.getApprovalInfo())));
+    verify(payApprovalRepository, times(2)).save(argThat(argument -> verifyApprovalInfo(argument.getApprovalInfo())));
   }
 
   private boolean verifyApprovalInfo(String approvalInfo) {
@@ -57,21 +57,24 @@ class ApprovalServiceTest {
       return false;
     }
     TransactionType transactionType = TransactionType.valueOf(parseStr(atomicReference, 10));
-    String paymentId = parseStr(atomicReference, 20);
+    String transactionId = parseStr(atomicReference, 20);
     Long cardNum = parseLong(atomicReference, 20);
     int installment = parseInt(atomicReference, 2);
     if (installment < 0 || installment > 12) {
+      return false;
+    }
+    if (transactionType == TransactionType.CANCEL && installment != 0) {
       return false;
     }
     int validThru = parseInt(atomicReference, 4);
     int cvc = parseInt(atomicReference, 3);
     long amount = parseLong(atomicReference, 10);
     long tax = parseLong(atomicReference, 10);
-    String orgPaymentId = parseStr(atomicReference, 20);
-    if (transactionType == TransactionType.PAYMENT && StringUtils.isNotEmpty(orgPaymentId)) {
+    String paymentId = parseStr(atomicReference, 20);
+    if (transactionType == TransactionType.PAYMENT && StringUtils.isNotEmpty(paymentId)) {
       return false;
     }
-    if (transactionType == TransactionType.CANCEL && StringUtils.isEmpty(orgPaymentId)) {
+    if (transactionType == TransactionType.CANCEL && StringUtils.isEmpty(paymentId)) {
       return false;
     }
     String encCardInfo = parseStr(atomicReference, 300);
@@ -79,12 +82,8 @@ class ApprovalServiceTest {
     if (StringUtils.isNotEmpty(buffer)) {
       return false;
     }
-    if (StringUtils.isNotEmpty(atomicReference.get())) {
-      // ApprovalInfo 소진이 다 안됨.
-      return false;
-    }
-
-    return true;
+    // ApprovalInfo 소진이 다 안됨.
+    return !StringUtils.isNotEmpty(atomicReference.get());
   }
 
   private Integer parseInt(AtomicReference<String> atomicReference, int length) {

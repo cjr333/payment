@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.payment.constant.TransactionType;
 import org.example.payment.entity.CreditCardEntity;
 import org.example.payment.entity.PayApprovalEntity;
-import org.example.payment.entity.PaymentEntity;
+import org.example.payment.entity.PayTransactionEntity;
 import org.example.payment.repository.PayApprovalRepository;
 import org.example.payment.util.FormattedStringBuilder;
 import org.springframework.stereotype.Service;
@@ -32,23 +32,23 @@ public class ApprovalService {
     예비필드 문자(47)
    */
 
-  public boolean requestPay(CreditCardEntity creditCardEntity, PaymentEntity paymentEntity) {
+  public boolean requestApproval(CreditCardEntity creditCardEntity, PayTransactionEntity payTransactionEntity) {
     FormattedStringBuilder fsb = new FormattedStringBuilder();
     String approvalInfo = fsb.num(STRING_LENGTH, 4)
-        .str(TransactionType.PAYMENT.name(), 10)
-        .str(paymentEntity.getPaymentId(), 20)
+        .str(payTransactionEntity.getTransactionType().name(), 10)
+        .str(payTransactionEntity.getTransactionId(), 20)
         .str(creditCardEntity.getCardNum(), 20)
-        .num0(paymentEntity.getInstallment(), 2)
+        .num0(payTransactionEntity.getInstallment(), 2)
         .str(creditCardEntity.getValidThru(), 4)
         .str(creditCardEntity.getCvc(), 3)
-        .num(paymentEntity.getOrgAmount(), 10)
-        .num0(paymentEntity.getOrgTax(), 10)
-        .str("", 20)
+        .num(payTransactionEntity.getAmount(), 10)
+        .num0(payTransactionEntity.getTax(), 10)
+        .str(payTransactionEntity.getTransactionType() == TransactionType.PAYMENT ? "" : payTransactionEntity.getPaymentId(), 20)
         .str(creditCardEntity.getEncCardInfo(), 300)
         .str("", 47)
         .toString();
     PayApprovalEntity payApprovalEntity = PayApprovalEntity.builder()
-        .paymentId(paymentEntity.getPaymentId())
+        .paymentId(payTransactionEntity.getPaymentId())
         .approvalInfo(approvalInfo)
         .build();
     payApprovalRepository.save(payApprovalEntity);
