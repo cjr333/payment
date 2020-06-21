@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.example.payment.constant.TransactionType;
 import org.example.payment.entity.CreditCardEntity;
 import org.example.payment.entity.PayTransactionEntity;
-import org.example.payment.entity.SampleEntityGenerator;
+import org.example.payment.util.SampleGenerator;
 import org.example.payment.repository.PayApprovalRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,12 +39,12 @@ class ApprovalServiceTest {
 
   @Test
   void successRequestApproval() {
-    CreditCardEntity creditCardEntity = SampleEntityGenerator.genCreditCardEntity();
+    CreditCardEntity creditCardEntity = SampleGenerator.genCreditCardEntity();
     creditCardEntity.encrypt();
-    PayTransactionEntity payTransactionEntity = SampleEntityGenerator.genPayTransactionEntity(TransactionType.PAYMENT);
+    PayTransactionEntity payTransactionEntity = SampleGenerator.genPayTransactionEntity(TransactionType.PAYMENT);
     approvalService.requestApproval(creditCardEntity, payTransactionEntity);
 
-    payTransactionEntity = SampleEntityGenerator.genPayTransactionEntity(TransactionType.CANCEL);
+    payTransactionEntity = SampleGenerator.genPayTransactionEntity(TransactionType.CANCEL);
     approvalService.requestApproval(creditCardEntity, payTransactionEntity);
 
     verify(payApprovalRepository, times(2)).save(argThat(argument -> verifyApprovalInfo(argument.getApprovalInfo())));

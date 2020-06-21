@@ -35,7 +35,7 @@ public class PaymentService {
     // CreditCard 정보 저장
     CreditCardEntity creditCardEntity = creditCardRepository.findById(payRequest.getCardNum())
         .map(CreditCardEntity::decrypt)
-        .orElse(payRequest.toCreditCardEntity());
+        .orElse(payRequest.toCreditCardEntity().encrypt());
     if (!Objects.equals(creditCardEntity.getCardNum(), payRequest.getCardNum())
         || !Objects.equals(creditCardEntity.getValidThru(), payRequest.getValidThru())
         || !Objects.equals(creditCardEntity.getCvc(), payRequest.getCvc())) {

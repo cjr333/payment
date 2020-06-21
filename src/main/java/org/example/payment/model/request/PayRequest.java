@@ -73,13 +73,11 @@ public class PayRequest {
   }
 
   public CreditCardEntity toCreditCardEntity() {
-    CreditCardEntity creditCardEntity = CreditCardEntity.builder()
+    return CreditCardEntity.builder()
         .cardNum(cardNum)
         .validThru(validThru)
         .cvc(cvc)
         .build();
-    creditCardEntity.encrypt();
-    return creditCardEntity;
   }
 
   public PaymentEntity toPaymentEntity() {
