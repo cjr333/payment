@@ -9,7 +9,13 @@ import org.example.payment.constant.TransactionType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedSubgraph;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 
@@ -19,6 +25,21 @@ import javax.persistence.Table;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@NamedEntityGraph(
+    name = "payTransactionWithPaymentAndCreditCard",
+    attributeNodes = {
+        @NamedAttributeNode("paymentEntity"),
+        @NamedAttributeNode(value = "paymentEntity", subgraph = "payment-subgraph"),
+    },
+    subgraphs = {
+        @NamedSubgraph(
+            name = "payment-subgraph",
+            attributeNodes = {
+                @NamedAttributeNode("creditCardEntity")
+            }
+        )
+    }
+)
 public class PayTransactionEntity {
   @PreUpdate
   private void preUpdate() {
@@ -44,4 +65,8 @@ public class PayTransactionEntity {
   private Long remainAmount;
 
   private Long remainTax;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "paymentId", insertable = false, updatable = false)
+  private PaymentEntity paymentEntity;
 }
