@@ -14,10 +14,13 @@ import org.example.payment.util.UniqueIdGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class PaymentService {
+  private final ApprovalService approvalService;
   private final CreditCardRepository creditCardRepository;
   private final PaymentRepository paymentRepository;
   private final PayTransactionRepository payTransactionRepository;
@@ -25,17 +28,27 @@ public class PaymentService {
   @Transactional
   public PayTransaction pay(PayRequest payRequest) {
     final long nowMs = System.currentTimeMillis();
+    String uniqueId = UniqueIdGenerator.generate(20);
+
     // CreditCard 정보 저장
     CreditCardEntity creditCardEntity = creditCardRepository.findById(payRequest.getCardNum())
+        .map(CreditCardEntity::decrypt)
         .orElse(payRequest.toCreditCardEntity());
+    if (!Objects.equals(creditCardEntity.getCardNum(), payRequest.getCardNum())
+        || !Objects.equals(creditCardEntity.getValidThru(), payRequest.getValidThru())
+        || !Objects.equals(creditCardEntity.getCvc(), payRequest.getCvc())) {
+      throw new IllegalArgumentException("invalid card info");
+    }
     creditCardEntity.setLastPayDateMs(nowMs);
     creditCardRepository.save(creditCardEntity);
 
-    // Payment 정보 저장
-    String uniqueId = UniqueIdGenerator.generate(20);
+    // 카드사에 승인 요청
     PaymentEntity paymentEntity = payRequest.toPaymentEntity();
     paymentEntity.setPaymentId(uniqueId);
     paymentEntity.setPayDateMs(nowMs);
+    approvalService.requestPay(creditCardEntity, paymentEntity);
+
+    // Payment 정보 저장
     paymentRepository.save(paymentEntity);
 
     // PayTransaction 정보 저장

@@ -24,6 +24,7 @@
 - CreditCard(PK: cardNum)
 - Payment(PK: paymentId, FK: cardNum)
 - PayTransaction(PK: seqNo(AI), FK: paymentId)
+- PayApproval(PK: paymentId)
 - 자세한 테이블 스키마는 /resources/data.sql 참고
 
 ## 문제해결 전략

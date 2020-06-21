@@ -1,6 +1,7 @@
 package org.example.payment.repository;
 
 import org.example.payment.entity.PaymentEntity;
+import org.example.payment.entity.SampleEntityGenerator;
 import org.junit.jupiter.api.Test;
 import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,16 +17,7 @@ class PaymentRepositoryTest {
 
   @Test
   void successSave() {
-    PaymentEntity paymentEntity = PaymentEntity.builder()
-        .paymentId("paymentId-123")
-        .cardNum("1234567890123456")
-        .payDateMs(System.currentTimeMillis())
-        .installment(0)
-        .orgAmount(1000L)
-        .orgTax(10L)
-        .remainAmount(1000L)
-        .remainTax(10L)
-        .build();
+    PaymentEntity paymentEntity = SampleEntityGenerator.genPaymentEntity();
     PaymentEntity saved = paymentRepository.save(paymentEntity);
     assertTrue(new ReflectionEquals(paymentEntity, "version").matches(saved));
   }
