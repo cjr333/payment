@@ -6,9 +6,11 @@ import org.example.payment.model.PayTransaction;
 import org.example.payment.model.request.CancelRequest;
 import org.example.payment.model.request.PayRequest;
 import org.example.payment.service.PaymentService;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -28,5 +30,10 @@ public class PaymentController {
   @PostMapping("/cancel")
   public PayTransaction cancel(@Valid @RequestBody CancelRequest cancelRequest) {
     return paymentService.cancel(cancelRequest);
+  }
+
+  @GetMapping("/transaction")
+  public PayTransaction findTransaction(@RequestParam String transactionId) {
+    return paymentService.findTransaction(transactionId);
   }
 }

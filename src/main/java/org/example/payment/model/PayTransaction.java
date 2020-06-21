@@ -22,9 +22,13 @@ public class PayTransaction {
   private Long tax;
 
   // region for operators
+  private Long remainAmount;
+
+  private Long remainTax;
+
   private String cardNum;
 
-  private String valid;
+  private String validThru;
 
   private String cvc;
   // endregion

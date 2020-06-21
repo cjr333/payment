@@ -2,6 +2,7 @@ package org.example.payment.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.example.payment.entity.PayTransactionEntity;
 import org.example.payment.entity.PaymentEntity;
 import org.example.payment.model.request.CancelRequest;
@@ -107,6 +108,33 @@ public class PaymentService {
         .transactionType(payTransactionEntity.getTransactionType())
         .amount(payTransactionEntity.getAmount())
         .tax(payTransactionEntity.getTax())
+        .build();
+  }
+
+  public PayTransaction findTransaction(String transactionId) {
+    PayTransactionEntity payTransactionEntity = payTransactionRepository.findById(transactionId)
+        .orElseThrow(() -> new IllegalArgumentException("not exist transaction"));
+    PaymentEntity paymentEntity = paymentRepository.findById(payTransactionEntity.getPaymentId())
+        .orElseThrow(() -> new IllegalArgumentException("not exist payment"));
+    CreditCardEntity creditCardEntity = creditCardRepository.findById(paymentEntity.getCardNum())
+        .orElseThrow(() -> new IllegalArgumentException("not exist credit card"));
+    creditCardEntity.decrypt();
+
+    String cardNum = creditCardEntity.getCardNum();
+    int startMask = 6;
+    int endMask = cardNum.length() - 3;
+    String maskedCardNum = cardNum.substring(0, startMask) + StringUtils.repeat('*', endMask - startMask) + cardNum.substring(endMask);
+
+    return PayTransaction.builder()
+        .transactionId(payTransactionEntity.getTransactionId())
+        .transactionType(payTransactionEntity.getTransactionType())
+        .amount(payTransactionEntity.getAmount())
+        .tax(payTransactionEntity.getTax())
+        .remainAmount(payTransactionEntity.getRemainAmount())
+        .remainTax(payTransactionEntity.getRemainTax())
+        .cardNum(maskedCardNum)
+        .validThru(creditCardEntity.getValidThru())
+        .cvc(creditCardEntity.getCvc())
         .build();
   }
 }
