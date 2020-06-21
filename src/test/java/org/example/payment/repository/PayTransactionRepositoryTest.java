@@ -2,7 +2,7 @@ package org.example.payment.repository;
 
 import org.example.payment.constant.TransactionType;
 import org.example.payment.entity.PayTransactionEntity;
-import org.example.payment.entity.SampleEntityGenerator;
+import org.example.payment.util.SampleGenerator;
 import org.junit.jupiter.api.Test;
 import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ class PayTransactionRepositoryTest {
 
   @Test
   void successSave() {
-    PayTransactionEntity payTransactionEntity = SampleEntityGenerator.genPayTransactionEntity(TransactionType.PAYMENT);
+    PayTransactionEntity payTransactionEntity = SampleGenerator.genPayTransactionEntity(TransactionType.PAYMENT);
     PayTransactionEntity saved = payTransactionRepository.save(payTransactionEntity);
     assertTrue(new ReflectionEquals(payTransactionEntity, "version").matches(saved));
   }
