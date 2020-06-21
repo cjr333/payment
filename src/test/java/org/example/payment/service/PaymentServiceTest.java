@@ -3,6 +3,7 @@ package org.example.payment.service;
 import org.apache.commons.lang3.StringUtils;
 import org.example.payment.constant.TransactionType;
 import org.example.payment.entity.CreditCardEntity;
+import org.example.payment.entity.PayTransactionEntity;
 import org.example.payment.entity.PaymentEntity;
 import org.example.payment.util.SampleGenerator;
 import org.example.payment.model.PayTransaction;
@@ -130,10 +131,10 @@ class PaymentServiceTest {
     PaymentEntity dbPaymentEntity = SampleGenerator.genPaymentEntity();
     CreditCardEntity dbCreditCardEntity = SampleGenerator.genCreditCardEntity().encrypt();
     dbCreditCardEntity.setCardNum(dbPaymentEntity.getCardNum());
+    dbPaymentEntity.setCreditCardEntity(dbCreditCardEntity);
     CancelRequest cancelRequest = SampleGenerator.genCancelRequest(dbPaymentEntity);
 
     // mock
-    when(creditCardRepository.findById(dbPaymentEntity.getCardNum())).thenReturn(Optional.of(dbCreditCardEntity));
     when(paymentRepository.findById(dbPaymentEntity.getPaymentId())).thenReturn(Optional.of(dbPaymentEntity));
     when(paymentRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     when(payTransactionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -199,6 +200,36 @@ class PaymentServiceTest {
 
   @Test
   void successFindTransaction() {
+    PayTransactionEntity payTransactionEntity = SampleGenerator.genPayTransactionEntity(TransactionType.PAYMENT);
+    PaymentEntity paymentEntity = SampleGenerator.genPaymentEntity();
+    CreditCardEntity creditCardEntity = SampleGenerator.genCreditCardEntity().encrypt();
+    payTransactionEntity.setPaymentEntity(paymentEntity);
+    paymentEntity.setCreditCardEntity(creditCardEntity);
 
+    // mock
+    when(payTransactionRepository.findById(payTransactionEntity.getTransactionId())).thenReturn(Optional.of(payTransactionEntity));
+
+    PayTransaction payTransaction = paymentService.findTransaction(payTransactionEntity.getTransactionId());
+
+    // verify
+    String cardNum = creditCardEntity.getCardNum();
+    String maskedCardNum = StringUtils.left(cardNum, 6) + StringUtils.repeat('*', cardNum.length() - 9) + StringUtils.right(cardNum, 3);
+    assertNotNull(payTransaction.getTransactionId());
+    assertEquals(payTransactionEntity.getTransactionType(), payTransaction.getTransactionType());
+    assertEquals(payTransactionEntity.getAmount(), payTransaction.getAmount());
+    assertEquals(payTransactionEntity.getTax(), payTransaction.getTax());
+    assertEquals(payTransactionEntity.getRemainAmount(), payTransaction.getRemainAmount());
+    assertEquals(payTransactionEntity.getRemainTax(), payTransaction.getRemainTax());
+    assertEquals(payTransaction.getCardNum(), maskedCardNum);
+    assertEquals(creditCardEntity.getValidThru(), payTransaction.getValidThru());
+    assertEquals(creditCardEntity.getCvc(), payTransaction.getCvc());
+  }
+
+  @Test
+  void failFindTransaction() {
+    // mock
+    when(payTransactionRepository.findById(any())).thenReturn(Optional.empty());
+
+    assertThrows(IllegalArgumentException.class, () -> paymentService.findTransaction("transactionId"), "not exist transaction");
   }
 }
