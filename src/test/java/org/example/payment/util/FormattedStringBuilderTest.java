@@ -9,34 +9,34 @@ class FormattedStringBuilderTest {
   private FormattedStringBuilder fsb = new FormattedStringBuilder();
 
   @Test
-  void testNumSuccess() {
+  void successNum() {
     fsb.num(12, 5);
     fsb.num(345L, 5);
     assertEquals(fsb.toString(), "   12  345");
   }
 
   @Test
-  void testNum0Success() {
+  void successNum0() {
     fsb.num0(12, 5);
     fsb.num0(345L, 5);
     assertEquals(fsb.toString(), "0001200345");
   }
 
   @Test
-  void testNumLSuccess() {
+  void successNumL() {
     fsb.numL(12, 5);
     fsb.numL(345L, 5);
     assertEquals(fsb.toString(), "12   345  ");
   }
 
   @Test
-  void testStrSuccess() {
+  void successStr() {
     fsb.str("abc", 5);
     assertEquals(fsb.toString(), "abc  ");
   }
 
   @Test
-  void testFail() {
+  void fail() {
     assertThrows(IllegalArgumentException.class, () -> fsb.num(123456, 5));
     assertThrows(IllegalArgumentException.class, () -> fsb.num(123456L, 5));
     assertThrows(IllegalArgumentException.class, () -> fsb.str("abcdefg", 5));

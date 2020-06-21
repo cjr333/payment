@@ -15,7 +15,7 @@
 ## 개발 프레임워크
 
 - SpringBoot 2.3.1
-- Spring-Webflux with Reactor Netty
+- Spring-Web
 - H2 Database
 - Jpa with Hibernate
 
@@ -28,8 +28,8 @@
 
 ## 문제해결 전략
 
-- PaymentId 는 8자리의 timestamp hex string + 12 자리의 Alphanumeric random string 으로 구성된다.
-- 카드정보 암호화는 AES512 를 사용한다.
+- PaymentId/TransactionId 는 8자리의 timestamp hex string + 12 자리의 Alphanumeric random string 으로 구성된다.
+- 카드정보 암호화는 AES256 를 사용한다.
 - StringFormat 은 FormattedStringBuilder 로 구현하고 해당 Builder 를 이용하여 카드사와의 규약문자열을 생성하도록 한다.
 
 ### 동시성 제어
@@ -38,8 +38,8 @@
 - 하나의 결제 건에 대한 동시 취소를 제어하기 위해 Payment 에 version 필드를 둔다.
 
 ### 트랜잭션
-- 결제는 CreditCard 의 정보 변경(version/lastPayDate..) 과 Payment 의 데이터 생성을 하나의 트랜잭션으로 처리한다.
-- 결제취소는 Payment 의 정보 변경(version/amount..) 과 Transaction 의 데이터 생성을 하나의 트랜잭션으로 처리한다.
+- 결제는 CreditCard 의 정보 변경(version/lastPayDate..) 과 Payment 및 PayTransaction 의 데이터 생성을 하나의 트랜잭션으로 처리한다.
+- 결제취소는 Payment 의 정보 변경(version/amount..) 과 PayTransaction 의 데이터 생성을 하나의 트랜잭션으로 처리한다.
 
 ## 빌드 및 실행 방법
 
@@ -47,4 +47,4 @@
 - 실행 방법(아래 방법 중 택 1)
 	- IDE 에서 Application 의 main 메서드를 실행
 	- 프로젝트 폴더에서 gradlew(또는 gradlew.bat) 를 이용하여 bootJar 태스크를 실행(gradlew bootJar) -> build/libs 에 생성된 payment.jar 를 실행(java -jar payment.jar)
-- 참고) H2 database 콘솔은 http://localhost:8081/ 로 접속 가능하며 JDBC URL 은 "jdbc:h2:mem:testdb" 로 입력하여 연결한다.
+- 참고) H2 database 콘솔은 http://localhost/h2-console 로 접속 가능하며 JDBC URL 은 "jdbc:h2:mem:testdb" 로 입력하여 연결한다.
