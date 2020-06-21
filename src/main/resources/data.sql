@@ -3,16 +3,17 @@ DROP TABLE IF EXISTS Payment;
 DROP TABLE IF EXISTS PayTransaction;
 
 CREATE TABLE CreditCard (
-  cardNum BIGINT PRIMARY KEY,
+  cardNum VARCHAR(16) PRIMARY KEY,
   encCardInfo VARBINARY(64) NOT NULL,
-  lastPayDate DATETIME NOT NULL,
+  lastPayDateMs BIGINT NOT NULL,
   version INT NOT NULL
 );
 
 CREATE TABLE Payment (
   paymentId CHAR(20) PRIMARY KEY,
-  cardNum BIGINT NOT NULL,
-  payDate DATETIME NOT NULL,
+  cardNum VARCHAR(16) NOT NULL,
+  payDateMs BIGINT NOT NULL,
+  installment INT NOT NULL,
   remainAmount BIGINT NOT NULL,
   remainTax BIGINT NOT NULL,
   orgAmount BIGINT NOT NULL,
@@ -21,10 +22,11 @@ CREATE TABLE Payment (
 );
 
 CREATE TABLE PayTransaction (
-  seqNo BIGINT AUTO_INCREMENT PRIMARY KEY,
+  transactionId CHAR(20) PRIMARY KEY,
   paymentId CHAR(20) NOT NULL,
-  type VARCHAR(20) NOT NULL,
-  transactionDate DATETIME NOT NULL,
+  transactionType VARCHAR(20) NOT NULL,
+  transactionDateMs BIGINT NOT NULL,
+  installment INT NOT NULL,
   amount BIGINT NOT NULL,
   tax BIGINT NOT NULL,
   remainAmount BIGINT NOT NULL,
