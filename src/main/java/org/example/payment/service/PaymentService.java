@@ -86,9 +86,7 @@ public class PaymentService {
     }
 
     // 카드사에 승인 요청
-    CreditCardEntity creditCardEntity = creditCardRepository.findById(paymentEntity.getCardNum())
-        .orElseThrow(() -> new IllegalArgumentException("not exist credit card"));
-    creditCardEntity.decrypt();
+    CreditCardEntity creditCardEntity = paymentEntity.getCreditCardEntity().decrypt();
     approvalService.requestApproval(creditCardEntity, payTransactionEntity);
 
     // 취소 금액 적용
@@ -114,12 +112,8 @@ public class PaymentService {
   public PayTransaction findTransaction(String transactionId) {
     PayTransactionEntity payTransactionEntity = payTransactionRepository.findById(transactionId)
         .orElseThrow(() -> new IllegalArgumentException("not exist transaction"));
-    PaymentEntity paymentEntity = paymentRepository.findById(payTransactionEntity.getPaymentId())
-        .orElseThrow(() -> new IllegalArgumentException("not exist payment"));
-    CreditCardEntity creditCardEntity = creditCardRepository.findById(paymentEntity.getCardNum())
-        .orElseThrow(() -> new IllegalArgumentException("not exist credit card"));
-    creditCardEntity.decrypt();
 
+    CreditCardEntity creditCardEntity = payTransactionEntity.getPaymentEntity().getCreditCardEntity();
     String cardNum = creditCardEntity.getCardNum();
     int startMask = 6;
     int endMask = cardNum.length() - 3;

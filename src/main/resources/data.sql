@@ -1,6 +1,6 @@
-DROP TABLE IF EXISTS CreditCard;
-DROP TABLE IF EXISTS Payment;
 DROP TABLE IF EXISTS PayTransaction;
+DROP TABLE IF EXISTS Payment;
+DROP TABLE IF EXISTS CreditCard;
 DROP TABLE IF EXISTS PayApproval;
 
 -- 신용카드 정보
