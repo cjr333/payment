@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.payment.entity.PayTransactionEntity;
 import org.example.payment.entity.PaymentEntity;
+import org.example.payment.model.request.CancelRequest;
 import org.example.payment.repository.CreditCardRepository;
 import org.example.payment.entity.CreditCardEntity;
 import org.example.payment.model.PayTransaction;
@@ -42,20 +43,63 @@ public class PaymentService {
     creditCardEntity.setLastPayDateMs(nowMs);
     creditCardRepository.save(creditCardEntity);
 
-    // 카드사에 승인 요청
+    // 엔티티 생성 및 카드사 승인 요청
     PaymentEntity paymentEntity = payRequest.toPaymentEntity();
     paymentEntity.setPaymentId(uniqueId);
     paymentEntity.setPayDateMs(nowMs);
-    approvalService.requestPay(creditCardEntity, paymentEntity);
+    PayTransactionEntity payTransactionEntity = payRequest.toPayTransactionEntity();
+    payTransactionEntity.setTransactionId(uniqueId);
+    payTransactionEntity.setPaymentId(uniqueId);
+    payTransactionEntity.setTransactionDateMs(nowMs);
+    approvalService.requestApproval(creditCardEntity, payTransactionEntity);
 
     // Payment 정보 저장
     paymentRepository.save(paymentEntity);
 
     // PayTransaction 정보 저장
-    PayTransactionEntity payTransactionEntity = payRequest.toPayTransactionEntity();
+    payTransactionRepository.save(payTransactionEntity);
+
+    return PayTransaction.builder()
+        .transactionId(payTransactionEntity.getTransactionId())
+        .transactionType(payTransactionEntity.getTransactionType())
+        .amount(payTransactionEntity.getAmount())
+        .tax(payTransactionEntity.getTax())
+        .build();
+  }
+
+  @Transactional
+  public PayTransaction cancel(CancelRequest cancelRequest) {
+    PayTransactionEntity payTransactionEntity = cancelRequest.toPayTransactionEntity();
+    final long nowMs = System.currentTimeMillis();
+    String uniqueId = UniqueIdGenerator.generate(20);
     payTransactionEntity.setTransactionId(uniqueId);
-    payTransactionEntity.setPaymentId(uniqueId);
     payTransactionEntity.setTransactionDateMs(nowMs);
+
+    // Payment 정보 조회 및 유효성 검증
+    PaymentEntity paymentEntity = paymentRepository.findById(payTransactionEntity.getPaymentId())
+        .orElseThrow(() -> new IllegalArgumentException("not exist payment"));
+    if (paymentEntity.getRemainAmount() < payTransactionEntity.getAmount()
+      || paymentEntity.getRemainTax() < payTransactionEntity.getTax()
+      || (paymentEntity.getRemainAmount() - payTransactionEntity.getAmount() < paymentEntity.getRemainTax() - payTransactionEntity.getTax())) {
+      throw new IllegalArgumentException("invalid amount or tax");
+    }
+
+    // 카드사에 승인 요청
+    CreditCardEntity creditCardEntity = creditCardRepository.findById(paymentEntity.getCardNum())
+        .orElseThrow(() -> new IllegalArgumentException("not exist credit card"));
+    creditCardEntity.decrypt();
+    approvalService.requestApproval(creditCardEntity, payTransactionEntity);
+
+    // 취소 금액 적용
+    paymentEntity.setRemainAmount(paymentEntity.getRemainAmount() - payTransactionEntity.getAmount());
+    paymentEntity.setRemainTax(paymentEntity.getRemainTax() - payTransactionEntity.getTax());
+    payTransactionEntity.setRemainAmount(paymentEntity.getRemainAmount());
+    payTransactionEntity.setRemainTax(paymentEntity.getRemainTax());
+
+    // Payment 정보 저장
+    paymentRepository.save(paymentEntity);
+
+    // PayTransaction 정보 저장
     payTransactionRepository.save(payTransactionEntity);
 
     return PayTransaction.builder()

@@ -1,5 +1,7 @@
 package org.example.payment.entity;
 
+import org.example.payment.constant.TransactionType;
+
 public class SampleEntityGenerator {
   public static CreditCardEntity genCreditCardEntity() {
     return CreditCardEntity.builder()
@@ -20,6 +22,24 @@ public class SampleEntityGenerator {
         .orgTax(10L)
         .remainAmount(1000L)
         .remainTax(10L)
+        .build();
+  }
+
+  public static PayTransactionEntity genPayTransactionEntity(TransactionType transactionType) {
+    long amount = 1000L;
+    long tax = 10L;
+    String transactionId = "transactionId-123";
+    String paymentId = "paymentId-123";
+    return PayTransactionEntity.builder()
+        .transactionId(transactionId)
+        .paymentId(transactionType == TransactionType.PAYMENT ? transactionId : paymentId)
+        .transactionType(transactionType)
+        .transactionDateMs(System.currentTimeMillis())
+        .installment(transactionType == TransactionType.PAYMENT ? 12 : 0)
+        .amount(amount)
+        .tax(tax)
+        .remainAmount(transactionType == TransactionType.PAYMENT ? amount : amount / 2)
+        .remainTax(transactionType == TransactionType.PAYMENT ? tax : tax / 2)
         .build();
   }
 }
