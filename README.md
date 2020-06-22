@@ -14,6 +14,7 @@
 
 ## 개발 프레임워크
 
+- Java8
 - SpringBoot 2.3.1
 - Spring-Web
 - H2 Database
