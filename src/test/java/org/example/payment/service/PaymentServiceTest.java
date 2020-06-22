@@ -5,13 +5,13 @@ import org.example.payment.constant.TransactionType;
 import org.example.payment.entity.CreditCardEntity;
 import org.example.payment.entity.PayTransactionEntity;
 import org.example.payment.entity.PaymentEntity;
-import org.example.payment.util.SampleGenerator;
 import org.example.payment.model.PayTransaction;
 import org.example.payment.model.request.CancelRequest;
 import org.example.payment.model.request.PayRequest;
 import org.example.payment.repository.CreditCardRepository;
 import org.example.payment.repository.PayTransactionRepository;
 import org.example.payment.repository.PaymentRepository;
+import org.example.payment.util.SampleGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,8 +19,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;

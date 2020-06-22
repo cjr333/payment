@@ -5,6 +5,7 @@ import org.example.payment.constant.TransactionType;
 import org.example.payment.entity.CreditCardEntity;
 import org.example.payment.entity.PayTransactionEntity;
 import org.example.payment.entity.PaymentEntity;
+import org.example.payment.model.PayTransaction;
 import org.example.payment.model.request.CancelRequest;
 import org.example.payment.model.request.PayRequest;
 
@@ -60,11 +61,35 @@ public class SampleGenerator {
         .build();
   }
 
+  public static CancelRequest genCancelRequest() {
+    PaymentEntity paymentEntity = genPaymentEntity();
+    return genCancelRequest(paymentEntity);
+  }
+
   public static CancelRequest genCancelRequest(PaymentEntity paymentEntity) {
     return CancelRequest.builder()
         .paymentId(paymentEntity.getPaymentId())
         .amount(paymentEntity.getRemainAmount() / 2)
         .tax(paymentEntity.getRemainTax() / 2)
         .build();
+  }
+
+  public static PayTransaction genPayTransaction(TransactionType transactionType, boolean isOperator) {
+    long amount = 10000L;
+    long tax = 1000L;
+    PayTransaction.PayTransactionBuilder payTransactionBuilder = PayTransaction.builder()
+        .transactionId(RandomStringUtils.randomAlphanumeric(20))
+        .transactionType(transactionType)
+        .amount(amount)
+        .tax(tax);
+    if (isOperator) {
+      payTransactionBuilder = payTransactionBuilder
+          .remainAmount(transactionType == TransactionType.PAYMENT ? amount : amount / 2)
+          .remainTax(transactionType == TransactionType.PAYMENT ? tax : tax / 2)
+          .cardNum("123456******890")
+          .validThru("1228")
+          .cvc("123");
+    }
+    return payTransactionBuilder.build();
   }
 }

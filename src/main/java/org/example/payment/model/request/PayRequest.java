@@ -66,6 +66,9 @@ public class PayRequest {
 
   @AssertTrue
   public boolean isValidTax() {
+    if (amount == null) {
+      return false;   // amount 가 null 일 경우 이 메서드가 호출되지 않고 리턴되는 것이 아님.
+    }
     if (tax == null) {
       tax = Math.round(amount / (double)11);
     }
