@@ -1,8 +1,7 @@
 package org.example.payment.exception;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.example.payment.constant.ErrorCode;
+import org.example.payment.model.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -42,21 +41,5 @@ public class GlobalExceptionHandler {
   public ErrorResponse handleIllegalArgumentException(IllegalArgumentException ex) {
     log.error(ex.getMessage(), ex);
     return new ErrorResponse(ILLEGAL_ARGUMENT, ex.getMessage());
-  }
-
-  @Data
-  public static class ErrorResponse {
-    private int errorCode;
-    private String errorMessage;
-
-    public ErrorResponse(ErrorCode errorCode) {
-      this.errorCode = errorCode.getCode();
-      this.errorMessage = errorCode.name();
-    }
-
-    public ErrorResponse(ErrorCode errorCode, String errorMessage) {
-      this.errorCode = errorCode.getCode();
-      this.errorMessage = errorMessage;
-    }
   }
 }

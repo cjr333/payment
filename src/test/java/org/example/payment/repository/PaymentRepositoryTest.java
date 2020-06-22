@@ -1,6 +1,5 @@
 package org.example.payment.repository;
 
-import org.example.payment.entity.CreditCardEntity;
 import org.example.payment.entity.PaymentEntity;
 import org.example.payment.util.SampleGenerator;
 import org.junit.jupiter.api.Test;
